@@ -1,5 +1,6 @@
 import mailmerge
 import xlrd
+from PyPDF2 import PdfMerger
 from docx2pdf import convert
 import os
 from comtypes import client
@@ -156,9 +157,15 @@ def populate_unit_template(document_file: mailmerge, sheet_object: xlrd.book) ->
     document_file.merge_rows('Special_rule_entry', special_rules_block)
     document_file.merge_rows('Option_value', options_block)
 
-    document_file.write('Unit_Cards/' + unit_name + '.docx')
-    convert('Unit_Cards/' + unit_name + '.docx', 'Unit_Cards/' + unit_name + '.pdf')
-    os.remove('Unit_Cards/' + unit_name + '.docx')
+    if not os.path.exists('Unit_Cards/' + unit_battlefield_role):
+        os.mkdir('Unit_Cards/' + unit_battlefield_role)
+    filename: str = unit_battlefield_role + '/' + unit_name
+    docx_path: str = 'Unit_Cards/' + filename + '.docx'
+    pdf_path: str = 'Unit_Cards/' + filename + '.pdf'
+
+    document_file.write(docx_path)
+    convert(docx_path, pdf_path)
+    os.remove(docx_path)
 
 
 def populate_weapons_template(document_file: mailmerge, sheet_object: xlrd.book) -> None:
@@ -237,3 +244,9 @@ def populate_wargear_template(document_file: mailmerge, sheet_object: xlrd.book)
     document_file.write('Unit_Cards/Wargear.docx')
     convert('Unit_Cards/Wargear.docx', 'Unit_Cards/Wargear.pdf')
     os.remove('Unit_Cards/Wargear.docx')
+
+
+def append_to_pdf(path_to_files_arg: str, merger_arg: PdfMerger) -> None:
+    for root, dirs, file_names in os.walk(path_to_files_arg):
+        for file_name in file_names:
+            merger_arg.append(path_to_files_arg + '/' + file_name)
